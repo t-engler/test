@@ -1,9 +1,11 @@
 package de.tse.gwTracker.application.viewer.controller.login;
 
-import javax.security.auth.login.LoginException;
+import java.io.IOException;
 
 import de.tse.gwTracker.application.ApplicationController;
 import de.tse.gwTracker.application.model.main.ApplicationModel;
+import de.tse.gwTracker.application.model.main.exceptions.APIException;
+import de.tse.gwTracker.application.viewer.controller.account.AccountViewController;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
@@ -14,6 +16,7 @@ public class LoginViewController {
 	/**
 	 * View part.
 	 */
+	public static final String URI = "/fxml/LoginView.fxml";
 
 	@FXML
 	TextField apiKey;
@@ -24,10 +27,11 @@ public class LoginViewController {
 	@FXML
 	public void login() {
 		try {
-			applicationModel.getAPILoginProperties().checkAPIKey(apiKey.getText());
-			applicationModel.getAPILoginProperties().storeAPIKey(apiKey.getText());
-			ApplicationController.openView(viewURI);
-		} catch (APIException e) {
+			if (applicationModel.getLoginFacade().checkApiKey(apiKey.getText())) {
+				applicationModel.getLoginProperties().setApiKey(apiKey.getText());
+				ApplicationController.openView(AccountViewController.URI);
+			}
+		} catch (APIException | IOException e) {
 			loginMessage.setText(e.getMessage());
 		} finally {
 			apiKey.clear();
@@ -37,7 +41,10 @@ public class LoginViewController {
 	/**
 	 * Controller part.
 	 */
+	public LoginViewController() {
+		applicationModel = ApplicationModel.requestApplicationModel();
+	}
 
 	@Getter
-	private final ApplicationModel applicationModel = ApplicationModel.requestApplicationModel();
+	private final ApplicationModel applicationModel;
 }
